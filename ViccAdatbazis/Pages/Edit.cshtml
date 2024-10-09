@@ -1,0 +1,20 @@
+﻿@page "{id:int}"
+@model Pages.Pages_Edit
+    ViewData["Title"] = "Vicc szerkesztése";
+}
+
+<h1>Vicc szerkesztése</h1>
+
+<form method="post">
+    <div>
+        <label for="Content">Tartalom:</label>
+        <textarea id="Content" name="Content" asp-for="Joke.Content"></textarea>
+    </div>
+    <button type="submit">Mentés</button>
+</form>
+
+<form method="post" asp-page-handler="Archive" asp-route-id="@Model.Joke.Id">
+    <button type="submit">Archiválás</button>
+</form>
+
+<a asp-page="/Jokes/Index">Vissza a listához</a>

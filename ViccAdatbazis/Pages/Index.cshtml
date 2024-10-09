@@ -1,10 +1,43 @@
-﻿@page
-@model IndexModel
+﻿@page "{page?}"
+@model Pages.IndexModel
 @{
-    ViewData["Title"] = "Home page";
+    ViewData["Title"] = "Vicc Tár";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<h1>Vicc Tár</h1>
+
+<div>
+    @if (Model.Jokes != null && Model.Jokes.Count > 0)
+    {
+        foreach (var joke in Model.Jokes)
+        {
+            <div class="joke-item">
+                <p>@joke.Tartalom</p>
+                <p>Feltöltő: @joke.Feltolto</p>
+                <p>
+                    Lájkok: @joke.Tetszik | Diszlájkok: @joke.NemTetszik
+                </p>
+                <form method="post" asp-page-handler="Like" asp-route-id="@joke.Id">
+                    <button type="submit">Tetszik</button>
+                </form>
+                <form method="post" asp-page-handler="Dislike" asp-route-id="@joke.Id">
+                    <button type="submit">Nem tetszik</button>
+                </form>
+                <a asp-page="/Jokes/Edit" asp-route-id="@joke.Id">Szerkesztés</a>
+            </div>
+        }
+    }
+    else
+    {
+        <p>Nincsenek elérhető viccek.</p>
+    }
 </div>
+
+<div class="pagination">
+    @if (Model.CurrentPage > 1)
+    {
+        <a asp-page="/Jokes/Index" asp-route-page="@(Model.CurrentPage - 1)">Előző</a>
+    }
+    <a asp-page="/Jokes/Index" asp-route-page="@(Model.CurrentPage + 1)">Következő</a>
+</div>
+
