@@ -8,137 +8,69 @@ namespace ViccAdatbazis.Controllers
     [Route("api/[controller]")]
     public class ViccController : ControllerBase
     {
+        //Adatbázis kapcsolat
         private readonly ViccDbContext _context;
-
         public ViccController(ViccDbContext context)
         {
             _context = context;
         }
-
-        // GET: api/jokes?page=1
+        //Viccek lekérdezése
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Vicc>>> GetJokes([FromQuery] int page = 1)
+        public async Task<ActionResult<List<Vicc>>> GetViccek()
         {
-            int pageSize = 10;
-            var jokes = await _context.Viccek
-                                      .Where(j => !j.Aktiv)
-                                      .Skip((page - 1) * pageSize)
-                                      .Take(pageSize)
-                                      .ToListAsync();
-
-            return Ok(jokes);
+            return await _context.Viccek.Where(x => x.Aktiv == true).ToListAsync();
         }
 
-        // GET: api/jokes/5
+        //Egy vicc lekérdezése
         [HttpGet("{id}")]
-        public async Task<ActionResult<Vicc>> GetJoke(int id)
+        public async Task<ActionResult<Vicc>> GetVicc(int id)
         {
-            var joke = await _context.Viccek.FindAsync(id);
+            var vicc = await _context.Viccek.FindAsync(id);
 
-            if (joke == null)
+            if (vicc == null)
             {
                 return NotFound();
             }
-
-            return Ok(joke);
+            return vicc;
         }
 
-        // POST: api/jokes
+        //Vicc feltöltése
         [HttpPost]
-        public async Task<ActionResult<Vicc>> AddJoke(Vicc newJoke)
+        public async Task<ActionResult<Vicc>> PostVicc(Vicc vicc)
         {
-            _context.Viccek.Add(newJoke);
+            _context.Viccek.Add(vicc);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetJoke), new { id = newJoke.Id }, newJoke);
+            //return Ok();
+
+            //A válasz maga a vicc
+            return CreatedAtAction("GetVicc", new { id = vicc.Id }, vicc);
         }
 
-        // PUT: api/jokes/5
+        //Vicc módosítása
         [HttpPut("{id}")]
-        public async Task<IActionResult> EditJoke(int id, Vicc updatedJoke)
+        public async Task<ActionResult> PutVicc(int id, Vicc vicc)
         {
-            if (id != updatedJoke.Id)
+            if (id != vicc.Id)
             {
                 return BadRequest();
             }
-
-            var joke = await _context.Viccek.FindAsync(id);
-            if (joke == null)
-            {
-                return NotFound();
-            }
-
-            joke.Tartalom = updatedJoke.Tartalom;
-            joke.Feltolto = updatedJoke.Feltolto;
-            joke.Tetszik = updatedJoke.Tetszik;
-            joke.NemTetszik = updatedJoke.NemTetszik;
-
+            _context.Entry(vicc).State = EntityState.Modified;
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return Ok();
         }
-
-        // PATCH: api/jokes/5/like
-        [HttpPatch("{id}/like")]
-        public async Task<IActionResult> LikeJoke(int id)
-        {
-            var joke = await _context.Viccek.FindAsync(id);
-            if (joke == null)
-            {
-                return NotFound();
-            }
-
-            joke.Tetszik++;
-            await _context.SaveChangesAsync();
-
-            return Ok(joke);
-        }
-
-        // PATCH: api/jokes/5/dislike
-        [HttpPatch("{id}/dislike")]
-        public async Task<IActionResult> DislikeJoke(int id)
-        {
-            var joke = await _context.Viccek.FindAsync(id);
-            if (joke == null)
-            {
-                return NotFound();
-            }
-
-            joke.NemTetszik++;
-            await _context.SaveChangesAsync();
-
-            return Ok(joke);
-        }
-
-        // DELETE: api/jokes/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> ArchiveJoke(int id)
+        public async Task<ActionResult> DeleteVicc(int id)
         {
-            var joke = await _context.Viccek.FindAsync(id);
-            if (joke == null)
-            {
-                return NotFound();
-            }
+            var vicc = await _context.Viccek.FindAsync(id);
 
-            joke.Aktiv = true;
+            if (vicc == null) { return NotFound(); }
+
+            if (vicc.Aktiv == true) { vicc.Aktiv = false; }
+            else { _context.Viccek.Remove(vicc); }
+
             await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        // DELETE: api/jokes/archive/5
-        [HttpDelete("archive/{id}")]
-        public async Task<IActionResult> DeleteArchivedJoke(int id)
-        {
-            var joke = await _context.Viccek.FindAsync(id);
-            if (joke == null || !joke.Aktiv)
-            {
-                return NotFound();
-            }
-
-            _context.Viccek.Remove(joke);
-            await _context.SaveChangesAsync();
-
             return NoContent();
         }
     }
